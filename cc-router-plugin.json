@@ -1,0 +1,23 @@
+{
+  "manifest": 1,
+  "id": "data-masking",
+  "type": "rules",
+  "version": "1.0.0",
+  "name": {
+    "zh": "隐私与密钥脱敏",
+    "zh-Hant": "隱私與金鑰去識別化",
+    "en": "Data Masking & Secret Redaction",
+    "ja": "プライバシー・機密情報マスキング"
+  },
+  "description": {
+    "zh": "请求发往上游模型前自动脱敏 API 密钥、云厂商凭据、私钥、JWT/Bearer Token、数据库连接密码，并支持按需开启邮箱、手机号、身份证、银行卡与内网 IP 脱敏。",
+    "zh-Hant": "請求送往上游模型前自動遮蔽 API 金鑰、雲端憑證、私鑰、JWT/Bearer Token、資料庫連線密碼，並支援按需開啟電子郵件、手機號、身分證、銀行卡與內網 IP 遮蔽。",
+    "en": "Automatically redacts API keys, cloud credentials, private keys, JWT/Bearer tokens, and database URI passwords before requests leave your machine, with optional toggles for PII and private IPs.",
+    "ja": "リクエスト送信前に API キー、クラウド認証情報、秘密鍵、JWT/Bearer トークン、DB パスワードを自動マスク。個人情報やプライベート IP の保護も個別にオン・オフできます。"
+  },
+  "author": "finch-xu",
+  "license": "MIT",
+  "homepage": "https://github.com/finch-xu/cc-router-data-masking",
+  "entry": "rules.json",
+  "assets": []
+}

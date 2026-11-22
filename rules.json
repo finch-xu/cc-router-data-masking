@@ -1,0 +1,300 @@
+{
+  "rulesApi": 1,
+  "params": [
+    {
+      "id": "mask_api_keys",
+      "type": "bool",
+      "label": {
+        "zh": "脱敏 API 密钥与云凭据（OpenAI / Anthropic / AWS / 阿里云 / 腾讯云 / GitHub 等）",
+        "zh-Hant": "遮蔽 API 金鑰與雲端憑證（OpenAI / Anthropic / AWS / 阿里雲 / 騰訊雲 / GitHub 等）",
+        "en": "Mask API keys & cloud credentials (OpenAI, Anthropic, AWS, Alibaba, Tencent, GitHub, etc.)",
+        "ja": "API キー・クラウド認証情報をマスク（OpenAI / Anthropic / AWS / GitHub 等）"
+      },
+      "default": true
+    },
+    {
+      "id": "mask_private_keys",
+      "type": "bool",
+      "label": {
+        "zh": "脱敏私钥块（PEM / RSA / EC / OpenSSH / PGP）",
+        "zh-Hant": "遮蔽私鑰區塊（PEM / RSA / EC / OpenSSH / PGP）",
+        "en": "Mask private key blocks (PEM, RSA, EC, OpenSSH, PGP)",
+        "ja": "秘密鍵ブロックをマスク（PEM / RSA / EC / OpenSSH / PGP）"
+      },
+      "default": true
+    },
+    {
+      "id": "mask_auth_tokens",
+      "type": "bool",
+      "label": {
+        "zh": "脱敏 JWT、Bearer Token 与常见环境变量密码",
+        "zh-Hant": "遮蔽 JWT、Bearer Token 與常見環境變數密碼",
+        "en": "Mask JWTs, Bearer/Basic auth headers, and secret env assignments",
+        "ja": "JWT・Bearer トークン・環境変数の秘密情報をマスク"
+      },
+      "default": true
+    },
+    {
+      "id": "mask_db_urls",
+      "type": "bool",
+      "label": {
+        "zh": "脱敏数据库连接串中的密码（PostgreSQL / MySQL / MongoDB / Redis 等）",
+        "zh-Hant": "遮蔽資料庫連線字串中的密碼（PostgreSQL / MySQL / MongoDB / Redis 等）",
+        "en": "Mask passwords in database connection URIs (PostgreSQL, MySQL, MongoDB, Redis, etc.)",
+        "ja": "DB 接続 URI 内のパスワードをマスク（PostgreSQL / MySQL / MongoDB / Redis 等）"
+      },
+      "default": true
+    },
+    {
+      "id": "mask_pii_contact",
+      "type": "bool",
+      "label": {
+        "zh": "脱敏个人联系方式（邮箱地址与中国大陆手机号）",
+        "zh-Hant": "遮蔽個人聯絡方式（電子郵件與中國大陸手機號）",
+        "en": "Mask contact PII (email addresses & CN mobile numbers)",
+        "ja": "連絡先（メールアドレス・携帯番号）をマスク"
+      },
+      "default": false
+    },
+    {
+      "id": "mask_pii_id",
+      "type": "bool",
+      "label": {
+        "zh": "脱敏敏感证件与银行卡号（中国大陆身份证 / 常见银行卡号）",
+        "zh-Hant": "遮蔽敏感證件與銀行卡號（中國大陸身分證 / 常見銀行卡號）",
+        "en": "Mask ID & bank card numbers (CN national ID / major card formats)",
+        "ja": "身分証番号・銀行カード番号をマスク"
+      },
+      "default": false
+    },
+    {
+      "id": "mask_internal_ip",
+      "type": "bool",
+      "label": {
+        "zh": "脱敏内网私有 IP 地址（10.x / 172.16-31.x / 192.168.x，保留 127.0.0.1）",
+        "zh-Hant": "遮蔽內網私有 IP 位址（10.x / 172.16-31.x / 192.168.x，保留 127.0.0.1）",
+        "en": "Mask private RFC 1918 IPs (10.x / 172.16-31.x / 192.168.x; keeps localhost)",
+        "ja": "プライベート IP をマスク（10.x / 172.16-31.x / 192.168.x、localhost は保持）"
+      },
+      "default": false
+    },
+    {
+      "id": "include_system_and_history",
+      "type": "bool",
+      "label": {
+        "zh": "严格模式：同时脱敏系统提示词与助手历史回复（可能降低缓存命中）",
+        "zh-Hant": "嚴格模式：同時遮蔽系統提示詞與助手歷史回覆（可能降低快取命中）",
+        "en": "Strict mode: also redact system prompts & assistant history (may reduce prompt cache hits)",
+        "ja": "厳格モード：システムプロンプトと履歴もマスク（キャッシュ命中率が下がる場合あり）"
+      },
+      "default": false
+    }
+  ],
+  "rules": [
+    {
+      "id": "redact-api-keys",
+      "hook": "request",
+      "when": { "param": "mask_api_keys" },
+      "do": [
+        {
+          "redact": {
+            "preset": ["api_keys"],
+            "patterns": [
+              "\\bASIA[0-9A-Z]{16}\\b",
+              "\\bLTAI[A-Za-z0-9]{12,24}\\b",
+              "\\bAKID[A-Za-z0-9]{32}\\b",
+              "\\bgh[ousr]_[A-Za-z0-9]{36}\\b",
+              "\\bglpat-[A-Za-z0-9_\\-]{20,}\\b",
+              "\\b(?:sk|pk)_(?:live|test)_[0-9a-zA-Z]{24,}\\b",
+              "\\b(?:gsk|hf|npm|pypi)_[A-Za-z0-9_\\-]{20,}\\b",
+              "\\bSG\\.[A-Za-z0-9_\\-]{22}\\.[A-Za-z0-9_\\-]{43}\\b",
+              "\\b\\d{8,10}:[A-Za-z0-9_\\-]{35}\\b"
+            ],
+            "scope": "user_text",
+            "replacement": "[REDACTED_API_KEY]"
+          }
+        }
+      ]
+    },
+    {
+      "id": "redact-private-keys",
+      "hook": "request",
+      "when": { "param": "mask_private_keys" },
+      "do": [
+        {
+          "redact": {
+            "patterns": [
+              "(?s)-----BEGIN [A-Z0-9 ]*PRIVATE KEY-----.*?-----END [A-Z0-9 ]*PRIVATE KEY-----",
+              "(?s)-----BEGIN PGP PRIVATE KEY BLOCK-----.*?-----END PGP PRIVATE KEY BLOCK-----"
+            ],
+            "scope": "user_text",
+            "replacement": "[REDACTED_PRIVATE_KEY]"
+          }
+        }
+      ]
+    },
+    {
+      "id": "redact-auth-tokens",
+      "hook": "request",
+      "when": { "param": "mask_auth_tokens" },
+      "do": [
+        {
+          "redact": {
+            "patterns": [
+              "\\beyJ[A-Za-z0-9_\\-]{10,}\\.[A-Za-z0-9_\\-]{10,}\\.[A-Za-z0-9_\\-]{10,}\\b"
+            ],
+            "scope": "user_text",
+            "replacement": "[REDACTED_JWT]"
+          }
+        },
+        {
+          "redact": {
+            "patterns": [
+              "(?i)(Authorization\\s*:\\s*(?:Bearer|Basic|Token)\\s+)[A-Za-z0-9._~+/=\\-]{12,}"
+            ],
+            "scope": "user_text",
+            "replacement": "${1}[REDACTED_TOKEN]"
+          }
+        },
+        {
+          "redact": {
+            "patterns": [
+              "(?i)(\\b(?:API_KEY|API_SECRET|SECRET_KEY|ACCESS_KEY_SECRET|PRIVATE_KEY|DB_PASSWORD|DATABASE_PASSWORD|REDIS_PASSWORD|JWT_SECRET|CLIENT_SECRET|WEBHOOK_SECRET)\\s*[:=]\\s*[\"']?)[^\\s\"'`,;]{8,}"
+            ],
+            "scope": "user_text",
+            "replacement": "${1}[REDACTED_SECRET]"
+          }
+        }
+      ]
+    },
+    {
+      "id": "redact-db-urls",
+      "hook": "request",
+      "when": { "param": "mask_db_urls" },
+      "do": [
+        {
+          "redact": {
+            "patterns": [
+              "((?:postgres(?:ql)?|mysql|mariadb|mongodb(?:\\+srv)?|redis|rediss|amqp|amqps|mssql|sqlserver)://[^/\\s:@]{1,64}:)[^/\\s@]{3,}(@)"
+            ],
+            "scope": "user_text",
+            "replacement": "${1}[REDACTED_PASSWORD]${2}"
+          }
+        }
+      ]
+    },
+    {
+      "id": "redact-pii-contact",
+      "hook": "request",
+      "when": { "param": "mask_pii_contact" },
+      "do": [
+        {
+          "redact": {
+            "preset": ["email"],
+            "scope": "user_text",
+            "replacement": "[REDACTED_EMAIL]"
+          }
+        },
+        {
+          "redact": {
+            "preset": ["phone_cn"],
+            "scope": "user_text",
+            "replacement": "[REDACTED_PHONE]"
+          }
+        }
+      ]
+    },
+    {
+      "id": "redact-pii-id",
+      "hook": "request",
+      "when": { "param": "mask_pii_id" },
+      "do": [
+        {
+          "redact": {
+            "preset": ["id_cn"],
+            "scope": "user_text",
+            "replacement": "[REDACTED_ID_CARD]"
+          }
+        },
+        {
+          "redact": {
+            "patterns": [
+              "\\b(?:62\\d{14,17}|4\\d{15}|5[1-5]\\d{14})\\b"
+            ],
+            "scope": "user_text",
+            "replacement": "[REDACTED_CARD]"
+          }
+        }
+      ]
+    },
+    {
+      "id": "redact-internal-ip",
+      "hook": "request",
+      "when": { "param": "mask_internal_ip" },
+      "do": [
+        {
+          "redact": {
+            "patterns": [
+              "\\b10\\.(?:25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)\\.(?:25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)\\.(?:25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)\\b",
+              "\\b172\\.(?:1[6-9]|2\\d|3[0-1])\\.(?:25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)\\.(?:25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)\\b",
+              "\\b192\\.168\\.(?:25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)\\.(?:25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)\\b"
+            ],
+            "scope": "user_text",
+            "replacement": "[REDACTED_INTERNAL_IP]"
+          }
+        }
+      ]
+    },
+    {
+      "id": "redact-strict-all-text",
+      "hook": "request",
+      "when": { "param": "include_system_and_history" },
+      "do": [
+        {
+          "redact": {
+            "preset": ["api_keys"],
+            "patterns": [
+              "\\bASIA[0-9A-Z]{16}\\b",
+              "\\bLTAI[A-Za-z0-9]{12,24}\\b",
+              "\\bAKID[A-Za-z0-9]{32}\\b",
+              "\\bgh[ousr]_[A-Za-z0-9]{36}\\b",
+              "\\bglpat-[A-Za-z0-9_\\-]{20,}\\b",
+              "\\b(?:sk|pk)_(?:live|test)_[0-9a-zA-Z]{24,}\\b",
+              "\\b(?:gsk|hf|npm|pypi)_[A-Za-z0-9_\\-]{20,}\\b"
+            ],
+            "scope": "all_text",
+            "replacement": "[REDACTED_API_KEY]"
+          }
+        },
+        {
+          "redact": {
+            "patterns": [
+              "(?s)-----BEGIN [A-Z0-9 ]*PRIVATE KEY-----.*?-----END [A-Z0-9 ]*PRIVATE KEY-----",
+              "(?s)-----BEGIN PGP PRIVATE KEY BLOCK-----.*?-----END PGP PRIVATE KEY BLOCK-----"
+            ],
+            "scope": "all_text",
+            "replacement": "[REDACTED_PRIVATE_KEY]"
+          }
+        },
+        {
+          "redact": {
+            "patterns": [
+              "\\beyJ[A-Za-z0-9_\\-]{10,}\\.[A-Za-z0-9_\\-]{10,}\\.[A-Za-z0-9_\\-]{10,}\\b"
+            ],
+            "scope": "all_text",
+            "replacement": "[REDACTED_JWT]"
+          }
+        },
+        {
+          "redact": {
+            "patterns": [
+              "((?:postgres(?:ql)?|mysql|mariadb|mongodb(?:\\+srv)?|redis|rediss|amqp|amqps|mssql|sqlserver)://[^/\\s:@]{1,64}:)[^/\\s@]{3,}(@)"
+            ],
+            "scope": "all_text",
+            "replacement": "${1}[REDACTED_PASSWORD]${2}"
+          }
+        }
+      ]
+    }
+  ]
+}
